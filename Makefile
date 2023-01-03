@@ -25,6 +25,10 @@ format:
 install: clean
 	pip install --editable .
 	pip install -r requirements-dev.txt
+	npm ci
+
+test:
+	brownie test --network hardhat -s
 
 release: clean
 	# require that you be on a branch that's linked to origin/main
