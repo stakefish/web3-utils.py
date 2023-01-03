@@ -29,7 +29,7 @@ with open("./README.md") as readme:
 setup(
     name="web3-utils",
     # *IMPORTANT*: Don't manually change the version here. Use the 'bumpversion' utility.
-    version="0.0.1-beta.0",
+    version="0.0.1-stable.0",
     description="""Stakefish web3 utils for Python""",
     long_description_content_type="text/markdown",
     long_description=long_description,
