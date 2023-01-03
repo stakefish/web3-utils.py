@@ -29,8 +29,8 @@ with open("./README.md") as readme:
 setup(
     name="web3-utils",
     # *IMPORTANT*: Don't manually change the version here. Use the 'bumpversion' utility.
-    version="0.1.1",
-    description="""Stakefish web3 utils for Python""",
+    version="0.0.1",
+    description="""Stakefish’s web3 utils for Python""",
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Michal Baranowski, Mateusz Sokola",
@@ -42,13 +42,9 @@ setup(
     ],
     python_requires="==3.10.5",
     extras_require=extras_require,
-    # py_modules=["web3_utils"],
-    # entry_points={"pytest11": ["pytest_ethereum = web3.tools.pytest_ethereum.plugins"]},
     license="INTERNAL",
-    # zip_safe=False,
     keywords="ethereum, stakefish",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    # package_data={"web3": ["py.typed"]},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

@@ -24,14 +24,13 @@ format:
 
 release: clean
 	# require that you be on a branch that's linked to origin/main
-	# git status -s -b | head -1 | grep "\.\.origin/main"
-	# verify that docs build correctly
+	git status -s -b | head -1 | grep "\.\.origin/main"
 	git config commit.gpgSign true
 	bumpversion $(bump)
-	# bumpversion --new-version 0.0.1-alpha0 part dist
 	git push origin && git push origin --tags
-	python setup.py sdist bdist_wheel
-	twine upload dist/*
+	# TODO(mateusz): enable when want to upload distributions to https://upload.pypi.org/legacy/
+	# python setup.py sdist bdist_wheel
+	# twine upload dist/*
 
 dist: clean
 	python setup.py sdist bdist_wheel
@@ -39,4 +38,4 @@ dist: clean
 
 package: clean
 	python setup.py sdist bdist_wheel
-	python web3/scripts/release/test_package.py
+	python scripts/test_package.py
