@@ -28,9 +28,8 @@ release: clean
 	# verify that docs build correctly
 	git config commit.gpgSign true
 	bumpversion $(bump)
-	# bumpversion minor
 	# bumpversion --new-version 0.0.1-alpha0 part dist
-	git push upstream && git push upstream --tags
+	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel
 	twine upload dist/*
 
