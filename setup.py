@@ -45,7 +45,7 @@ setup(
     # py_modules=["web3_utils"],
     # entry_points={"pytest11": ["pytest_ethereum = web3.tools.pytest_ethereum.plugins"]},
     license="INTERNAL",
-    zip_safe=False,
+    # zip_safe=False,
     keywords="ethereum, stakefish",
     packages=find_packages(exclude=["tests", "tests.*"]),
     # package_data={"web3": ["py.typed"]},
