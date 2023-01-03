@@ -10,11 +10,11 @@ extras_require = {
         "isort==5.10.1",
     ],
     "dev": [
-        "bumpversion",
+        "bumpversion==0.6.0",
         "eth-brownie==1.19.2",
         "pytest-asyncio==0.20.2",
         "pytest-mock==3.10.0",
-        "setuptools>=38.6.0",
+        "setuptools==65.6.3",
     ],
 }
 
@@ -42,7 +42,7 @@ setup(
     ],
     python_requires="==3.10.5",
     extras_require=extras_require,
-    py_modules=["web3_utils"],
+    # py_modules=["web3_utils"],
     # entry_points={"pytest11": ["pytest_ethereum = web3.tools.pytest_ethereum.plugins"]},
     license="INTERNAL",
     zip_safe=False,

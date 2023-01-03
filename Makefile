@@ -23,12 +23,11 @@ format:
 	black .
 
 release: clean
-	# require that you be on a branch that's linked to upstream/master
-	git status -s -b | head -1 | grep "\.\.upstream/master"
-	./newsfragments/validate_files.py is-empty
+	# require that you be on a branch that's linked to origin/main
+	# git status -s -b | head -1 | grep "\.\.origin/main"
 	# verify that docs build correctly
 	git config commit.gpgSign true
-	bumpversion $(bump)
+	bumpversion --new-version 0.0.1-alpha0 part web_utils
 	git push upstream && git push upstream --tags
 	python setup.py sdist bdist_wheel
 	twine upload dist/*
