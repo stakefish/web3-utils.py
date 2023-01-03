@@ -27,7 +27,7 @@ release: clean
 	# git status -s -b | head -1 | grep "\.\.origin/main"
 	# verify that docs build correctly
 	git config commit.gpgSign true
-	bumpversion --new-version 0.0.1-alpha0 part web_utils
+	bumpversion --new-version 0.0.1-alpha0 part web3_utils
 	git push upstream && git push upstream --tags
 	python setup.py sdist bdist_wheel
 	twine upload dist/*
