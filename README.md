@@ -3,10 +3,19 @@
 Internal Web3 utilities for Python
 
 
-## How to install?
+# Installation
+Install dependencies
+
+```bash
+make install
+```
 
 
+# Code formatting
 
+```bash
+make format
+```
 
 # Releasing
 

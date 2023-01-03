@@ -14,9 +14,7 @@ import venv
 def create_venv(parent_path: Path) -> Path:
     venv_path = parent_path / "package-smoke-test"
     venv.create(venv_path, with_pip=True)
-    subprocess.run(
-        [venv_path / "bin" / "pip", "install", "-U", "pip", "setuptools"], check=True
-    )
+    subprocess.run([venv_path / "bin" / "pip", "install", "-U", "pip", "setuptools"], check=True)
     return venv_path
 
 
@@ -24,17 +22,12 @@ def find_wheel(project_path: Path) -> Path:
     wheels = list(project_path.glob("dist/*.whl"))
 
     if len(wheels) != 1:
-        raise Exception(
-            f"Expected one wheel. Instead found: {wheels} "
-            f"in project {project_path.absolute()}"
-        )
+        raise Exception(f"Expected one wheel. Instead found: {wheels} " f"in project {project_path.absolute()}")
 
     return wheels[0]
 
 
-def install_wheel(
-    venv_path: Path, wheel_path: Path, extras: Tuple[str, ...] = ()
-) -> None:
+def install_wheel(venv_path: Path, wheel_path: Path, extras: Tuple[str, ...] = ()) -> None:
     if extras:
         extra_suffix = f"[{','.join(extras)}]"
     else:

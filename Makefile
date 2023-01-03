@@ -22,6 +22,10 @@ clean-pyc:
 format:
 	black .
 
+install: clean
+	pip install --editable .
+	pip install -r requirements-dev.txt
+
 release: clean
 	# require that you be on a branch that's linked to origin/main
 	git status -s -b | head -1 | grep "\.\.origin/main"
@@ -33,9 +37,9 @@ release: clean
 	# twine upload dist/*
 
 dist: clean
-	python setup.py sdist bdist_wheel
+	python -m build
 	ls -l dist
 
 package: clean
-	python setup.py sdist bdist_wheel
+	python -m build
 	python scripts/test_package.py
