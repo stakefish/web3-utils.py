@@ -36,7 +36,7 @@ release: clean
 	git config commit.gpgSign true
 	bumpversion $(bump)
 	git push origin && git push origin --tags
-	# TODO(mateusz): enable when want to upload distributions to https://upload.pypi.org/legacy/
+	# TODO(mateusz): enable if we want to upload distributions to https://upload.pypi.org/legacy/
 	# python setup.py sdist bdist_wheel
 	# twine upload dist/*
 
