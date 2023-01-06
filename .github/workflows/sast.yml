@@ -1,0 +1,26 @@
+name: SAST
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  run-sast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version-file: .python-version
+      - run: |
+          make install
+      - uses: AppThreat/sast-scan-action@master
+        with:
+          output: reports
+          type: python, depscan
+      - uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: reports
+          retention-days: 5
