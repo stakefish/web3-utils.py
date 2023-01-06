@@ -19,6 +19,9 @@ clean-pyc:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
+lint:
+	black --check .
+
 format:
 	black .
 
