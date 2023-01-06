@@ -6,15 +6,7 @@ from typing import Type
 import typing
 from aiohttp import ClientConnectorError
 from requests import HTTPError, ConnectionError
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    wait_fixed,
-    RetryCallState,
-    retry_any,
-    retry_if_exception,
-    stop_never
-)
+from tenacity import retry, retry_if_exception_type, wait_fixed, RetryCallState, retry_any, retry_if_exception, stop_never
 from tenacity._utils import get_callback_name
 from web3.eth import Eth, AsyncEth
 from web3.exceptions import TransactionNotFound, BlockNotFound
