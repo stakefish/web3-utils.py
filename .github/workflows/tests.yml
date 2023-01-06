@@ -25,6 +25,5 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           npm ci
-          npm install -g ganache-cli
       - name: Run tests
         run: make test
