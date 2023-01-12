@@ -29,6 +29,8 @@ pip install --upgrade build
 make package
 ```
 
+The library will be published to PyPI. You must [create an account](https://pypi.org/account/register/) to be able publish the new artifacts.
+
 ## Push The Release to GitHub
 
 After committing the compiled release notes and pushing them to the master branch, release a new version:
