@@ -35,13 +35,12 @@ test:
 
 release: clean
 	# require that you be on a branch that's linked to origin/main
-	git status -s -b | head -1 | grep "\.\.origin/main"
-	git config commit.gpgSign true
-	bumpversion $(bump)
-	git push origin && git push origin --tags
-	# TODO(mateusz): enable if we want to upload distributions to https://upload.pypi.org/legacy/
-	# python setup.py sdist bdist_wheel
-	# twine upload dist/*
+	# git status -s -b | head -1 | grep "\.\.origin/main"
+	# git config commit.gpgSign true
+	# bumpversion $(bump)
+	# git push origin && git push origin --tags
+	python -m build
+	twine upload dist/*
 
 dist: clean
 	python -m build
