@@ -63,7 +63,7 @@ def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.L
                         retry_if_exception_type(
                             (BlockNotFound, TransactionNotFound, ConnectionError, ClientConnectorError, asyncio.TimeoutError)
                         ),
-                        retry_if_exception(lambda e: isinstance(e, HTTPError) and e.response.status_code in [429, 502]),
+                        retry_if_exception(lambda e: isinstance(e, HTTPError) and e.response.status_code in [429, 502, 504]),
                     ),
                     wait=wait_fixed(5),
                     reraise=True,

@@ -59,6 +59,20 @@ def test_http_429_retry(mocker):
     mocked_fn.assert_called()
 
 
+def test_http_504_retry(mocker):
+    class Resp:
+        status_code = 504
+
+    mocked_fn: MagicMock = mocker.patch(
+        "web3.module.retrieve_blocking_method_call_fn",
+        return_value=trigger_fake_error(error_to_raise=HTTPError(response=Resp())),
+    )
+
+    web3 = retryable_web3()
+    web3.eth.get_block(123)
+    mocked_fn.assert_called()
+
+
 def test_block_not_found_retry(mocker):
     mocked_fn: MagicMock = mocker.patch(
         "web3.module.retrieve_blocking_method_call_fn",
