@@ -45,8 +45,10 @@ class AsyncBeacon(Beacon):
     async def get_validator(self, pubkey: str, state_id: str = "head"):
         return await self._run_as_async(self._get_validator, pubkey, state_id)
 
-    async def get_validators(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
-        return await self._run_as_async(self._get_validators, state_id, indexes)
+    async def get_validators(
+        self, state_id: str = "head", indexes: List[str] = None, params: Dict[str, Any] = {}
+    ) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_validators, state_id, indexes, params)
 
     async def get_validator_balances(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
         return await self._run_as_async(self._get_validator_balances, state_id, indexes)
@@ -61,12 +63,13 @@ class AsyncBeacon(Beacon):
             else:
                 raise e
 
-    def _get_validators(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
-        if indexes is None or len(indexes) > 50:
+    def _get_validators(self, state_id: str = "head", indexes: List[str] = None, params: Dict[str, Any] = {}) -> Dict[str, Any]:
+        if indexes is not None and len(indexes) > 50:
             raise Exception("Too many validators requested")
 
         endpoint = f"/eth/v1/beacon/states/{state_id}/validators"
-        params = {"id": indexes}
+        if indexes is not None:
+            params["id"] = indexes
 
         return self._make_get_request_with_params(endpoint, params)
 
