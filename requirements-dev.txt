@@ -1,7 +1,7 @@
 black == 22.10.0
 bumpversion == 0.6.0
 isort == 5.10.1
-eth-brownie == 1.19.2
+eth-brownie @ git+https://github.com/stakefish/brownie.git@v1.19.3-forked
 pytest-asyncio == 0.20.3
 pytest-mock == 3.10.0
 twine == 4.0.2
