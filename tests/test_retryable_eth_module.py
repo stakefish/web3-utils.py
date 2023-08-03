@@ -10,6 +10,7 @@ from web3 import HTTPProvider
 from web3.eth import Eth
 from web3.exceptions import BlockNotFound, TransactionNotFound
 from web3.main import get_default_modules, Web3
+from web3.types import RPCError
 
 from web3_utils.retryable_eth_module import get_retryable_eth_module
 
@@ -140,4 +141,16 @@ def test_stop_retry_on_shutdown(mocker: MockerFixture, event_loop):
     with pytest.raises(BlockNotFound):
         web3.eth.get_block(123)
 
+    mocked_fn.assert_called()
+
+
+def test_rpc_timeout_error_retry(mocker):
+    rpc_timeout_error = RPCError(code=-32603, message="request failed or timed out")
+    mocked_fn: MagicMock = mocker.patch(
+        "web3.module.retrieve_blocking_method_call_fn",
+        return_value=trigger_fake_error(error_to_raise=ValueError(rpc_timeout_error)),
+    )
+
+    web3 = retryable_web3()
+    web3.eth.get_block(123)
     mocked_fn.assert_called()

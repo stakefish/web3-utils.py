@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+from http import HTTPStatus
 import logging
 import time
 from typing import Type
@@ -50,6 +51,20 @@ def before(retry_state: "RetryCallState"):
     retry_state.start_time = time.monotonic()
 
 
+def is_retryable_http_error(e) -> bool:
+    """Check for retryable HTTP status codes"""
+    return isinstance(e, HTTPError) and e.response.status_code in [
+        HTTPStatus.TOO_MANY_REQUESTS,
+        HTTPStatus.BAD_GATEWAY,
+        HTTPStatus.GATEWAY_TIMEOUT,
+    ]
+
+
+def is_timeout_value_error(e) -> bool:
+    """Check if a ValueError is due to an rpc request timeout."""
+    return isinstance(e, ValueError) and "request failed or timed out" in str(e)
+
+
 def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.Logger, retry_stop: typing.Callable or None = None):
     class RetryableModule(base):
         def __getattribute__(self, name):
@@ -63,7 +78,8 @@ def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.L
                         retry_if_exception_type(
                             (BlockNotFound, TransactionNotFound, ConnectionError, ClientConnectorError, asyncio.TimeoutError)
                         ),
-                        retry_if_exception(lambda e: isinstance(e, HTTPError) and e.response.status_code in [429, 502, 504]),
+                        retry_if_exception(is_retryable_http_error),
+                        retry_if_exception(is_timeout_value_error),
                     ),
                     wait=wait_fixed(5),
                     reraise=True,
