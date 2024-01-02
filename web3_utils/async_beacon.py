@@ -6,6 +6,7 @@ from requests import HTTPError, ConnectionError
 from tenacity import retry, retry_if_exception, wait_fixed, before_sleep_log, retry_any, retry_if_exception_type, stop_never
 from web3.beacon import Beacon
 
+
 def with_retry(f):
     async def wrapper(*args):
         retry_stop = args[0].retry_stop
