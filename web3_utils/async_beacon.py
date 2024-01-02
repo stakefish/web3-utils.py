@@ -33,14 +33,17 @@ class AsyncBeacon(Beacon):
         super().__init__(base_url)
         self.retry_stop = retry_stop
         self.logger = logger
+        self.cache = {}
 
     async def get_finality_checkpoint(self, state_id: str = "head"):
         return await self._run_as_async(super().get_finality_checkpoint, state_id)
 
     async def get_genesis(self) -> int:
-        genesis = await self._run_as_async(super().get_genesis)
-        genesis_time = int(genesis["data"]["genesis_time"])
-        return genesis_time
+        if "genesis_time" not in self.cache:
+            genesis = await self._run_as_async(super().get_genesis)
+            self.cache["genesis_time"] = int(genesis["data"]["genesis_time"])
+
+        return self.cache["genesis_time"]
 
     async def get_validator(self, pubkey: str, state_id: str = "head"):
         return await self._run_as_async(self._get_validator, pubkey, state_id)

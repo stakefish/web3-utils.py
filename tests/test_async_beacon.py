@@ -84,3 +84,18 @@ async def test_retry_stop_fn(mocker: MockerFixture):
 
     with pytest.raises(Exception, match="HTTPError"):
         await async_beacon.get_validator("0x" + VALIDATOR_PUB_KEY_1)
+
+
+@pytest.mark.asyncio()
+async def test_cache_genesis_time(mocker: MockerFixture):
+    mocked_fn = mocker.patch("web3.beacon.Beacon.get_genesis", return_value={"data": {"genesis_time": "1606824000"}})
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    response = await async_beacon.get_genesis()
+    response = await async_beacon.get_genesis()
+    response = await async_beacon.get_genesis()
+    response = await async_beacon.get_genesis()
+    response = await async_beacon.get_genesis()
+    assert response == 1606824000
+
+    mocked_fn.assert_called_once()
