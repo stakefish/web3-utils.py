@@ -1,7 +1,7 @@
 import base64
 import os
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from web3_utils.gitlab import GitLab
 
 
