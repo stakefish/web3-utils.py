@@ -5,6 +5,7 @@ __pycache__
 node_modules
 *.svg
 *.db
+tmp
 
 #Hardhat & Brownie files
 cache
