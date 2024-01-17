@@ -12,6 +12,7 @@ file_content = [
     "0x444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
 ]
 
+
 @pytest.fixture
 def temp_dir_with_public_keys():
     temp_dir = tempfile.mkdtemp()
