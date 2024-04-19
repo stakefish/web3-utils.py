@@ -67,9 +67,6 @@ class AsyncBeacon(Beacon):
                 raise e
 
     def _get_validators(self, state_id: str = "head", indexes: List[str] = None, params: Dict[str, Any] = {}) -> Dict[str, Any]:
-        if indexes is not None and len(indexes) > 50:
-            raise Exception("Too many validators requested")
-
         endpoint = f"/eth/v1/beacon/states/{state_id}/validators"
         if indexes is not None:
             params["id"] = indexes
