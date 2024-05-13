@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Callable
 
-from requests import HTTPError, ConnectionError
+from requests import HTTPError, ConnectionError, Session
 from tenacity import retry, retry_if_exception, wait_fixed, before_sleep_log, retry_any, retry_if_exception_type, stop_never
 from web3.beacon import Beacon
 
@@ -34,6 +34,13 @@ class AsyncBeacon(Beacon):
         self.retry_stop = retry_stop
         self.logger = logger
         self.cache = {}
+
+    def update_base_url(self, base_url: str):
+        self.base_url = base_url
+        self.session = Session()
+
+    async def get_syncing(self):
+        return await self._run_as_async(super().get_syncing)
 
     async def get_finality_checkpoint(self, state_id: str = "head"):
         return await self._run_as_async(super().get_finality_checkpoint, state_id)
