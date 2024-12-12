@@ -55,10 +55,8 @@ class AsyncBeacon(Beacon):
     async def get_validator(self, pubkey: str, state_id: str = "head"):
         return await self._run_as_async(self._get_validator, pubkey, state_id)
 
-    async def get_validators(
-        self, state_id: str = "head", indexes: List[str] = None, params: Dict[str, Any] = {}
-    ) -> Dict[str, Any]:
-        return await self._run_as_async(self._get_validators, state_id, indexes, params)
+    async def get_validators(self, state_id: str = "head", ids: List[str] = None, statuses: List[str] = None) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_validators, state_id, ids, statuses)
 
     async def get_validator_balances(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
         return await self._run_as_async(self._get_validator_balances, state_id, indexes)
@@ -73,17 +71,18 @@ class AsyncBeacon(Beacon):
             else:
                 raise e
 
-    def _get_validators(self, state_id: str = "head", indexes: List[str] = None, params: Dict[str, Any] = {}) -> Dict[str, Any]:
+    def _get_validators(self, state_id: str = "head", ids: List[str] = None, statuses: List[str] = None) -> Dict[str, Any]:
         endpoint = f"/eth/v1/beacon/states/{state_id}/validators"
-        if indexes is not None:
-            params["id"] = indexes
 
-        return self._make_get_request_with_params(endpoint, params)
+        request_body = {}
+        if ids is not None:
+            request_body["ids"] = ids
+        if statuses is not None:
+            request_body["statuses"] = statuses
+
+        return self._make_post_request(endpoint, request_body)
 
     def _get_validator_balances(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
-        if indexes is None or len(indexes) > 250:
-            raise Exception("Too many validators requested")
-
         endpoint = f"/eth/v1/beacon/states/{state_id}/validator_balances"
         params = {"id": indexes}
 
@@ -92,6 +91,12 @@ class AsyncBeacon(Beacon):
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
         url = self.base_url + endpoint
         response = self.session.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+
+    def _make_post_request(self, endpoint: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
+        url = self.base_url + endpoint
+        response = self.session.post(url, json=json_data)
         response.raise_for_status()
         return response.json()
 
