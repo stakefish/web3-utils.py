@@ -5,12 +5,15 @@ from os import path, makedirs, getcwd
 from gitlab import Gitlab
 from typing import Optional
 
+
 class GitLab:
     def __init__(self, url: str, token: str, tmp_dir: str = path.join(getcwd(), "tmp", "public_keys")):
         self.client = Gitlab(private_token=token, url=url)
         self.tmp_dir = tmp_dir
 
-    def download_files_from_project(self, project_id: int, dir_path: str, branch: str = "master", include_only_files: Optional[list[str]] = None):
+    def download_files_from_project(
+        self, project_id: int, dir_path: str, branch: str = "master", include_only_files: Optional[list[str]] = None
+    ):
         # ensures that access token doesn't expire
         self.client.auth()
 
