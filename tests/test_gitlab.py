@@ -46,6 +46,41 @@ def test_download_files_from_project(gitlab_instance, mocker):
     repo_blob_mock.assert_has_calls([mocker.call("file_id_1"), mocker.call("file_id_2")])
 
 
+def test_download_files_from_project_with_include_only_files(gitlab_instance, mocker):
+    gitlab, gitlab_mock = gitlab_instance
+
+    repo_tree_mock = mocker.patch.object(
+        gitlab_mock.projects.get(1),
+        "repository_tree",
+        return_value=[
+            {"id": "file_id_1", "name": "hoodi-file.txt", "type": "blob"},
+            {"id": "file_id_2", "name": "holesky-file.txt", "type": "blob"},
+            {"id": "file_id_3", "name": "not-hoodi.txt", "type": "blob"},
+        ],
+    )
+
+    repo_blob_mock = mocker.patch.object(
+        gitlab_mock.projects.get(1),
+        "repository_blob",
+        side_effect=[
+            {"content": base64.b64encode(b"file1 content").decode("utf-8")},
+            {"content": base64.b64encode(b"file2 content").decode("utf-8")},
+        ],
+    )
+
+    downloaded_files = gitlab.download_files_from_project(
+        project_id=1, dir_path="test_dir", branch="main", include_only_files=["^hoodi", "^holesky"]
+    )
+
+    expected_paths = [
+        os.path.join(os.getcwd(), "tmp", "public_keys", "hoodi-file.txt"),
+        os.path.join(os.getcwd(), "tmp", "public_keys", "holesky-file.txt"),
+    ]
+    assert downloaded_files == expected_paths
+    repo_tree_mock.assert_called_once_with(ref="main", path="test_dir", get_all=True)
+    repo_blob_mock.assert_has_calls([mocker.call("file_id_1"), mocker.call("file_id_2")])
+
+
 def test_prepare_temp_directory(gitlab_instance, mocker):
     gitlab, gitlab_mock = gitlab_instance
 
