@@ -8,4 +8,3 @@ line-length = 132
 [tool.isort]
 # make it compatible with black
 profile = "black"
-
