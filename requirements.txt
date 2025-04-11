@@ -2,3 +2,4 @@ web3==6.15.1
 tenacity==8.1.0
 python-gitlab==5.6.0
 requests>=2.32.0
+pkginfo>=1.10
