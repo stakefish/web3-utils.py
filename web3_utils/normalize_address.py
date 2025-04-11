@@ -4,7 +4,7 @@ from web3.exceptions import InvalidAddress
 
 
 def normalize_address(address: str) -> ChecksumAddress:
-    if Web3.isAddress(address) == False:
+    if Web3.is_address(address) == False:
         raise InvalidAddress(address)
 
-    return Web3.toChecksumAddress(HexStr(address))
+    return Web3.to_checksum_address(HexStr(address))
