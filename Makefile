@@ -37,8 +37,8 @@ release: clean
 	# require that you be on a branch that's linked to origin/main
 	git status -s -b | head -1 | grep "\.\.origin/main"
 	git config commit.gpgSign true
-	# bumpversion $(bump)
-	# git push origin && git push origin --tags
+	bumpversion $(bump)
+	git push origin && git push origin --tags
 	python -m build
 	twine upload dist/*
 
