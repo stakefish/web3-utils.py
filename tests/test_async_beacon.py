@@ -2,7 +2,7 @@ import logging
 
 import pytest
 from pytest_mock import MockerFixture
-from requests import HTTPError, ConnectionError
+from requests import HTTPError, ConnectionError, Response
 
 from web3_utils.async_beacon import AsyncBeacon
 
@@ -99,3 +99,33 @@ async def test_cache_genesis_time(mocker: MockerFixture):
     assert response == 1606824000
 
     mocked_fn.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_get_validator_balances(mocker: MockerFixture):
+    # Mock the get_validator_balances method from web3.beacon.Beacon
+    response_json = {"data": [{"index": "0", "balance": "32000000000"}, {"index": "1", "balance": "32000000000"}]}
+    mocked_response = Response()
+    mocked_response.json = lambda: response_json
+    mocked_response.status_code = 200
+
+    mocked_fn = mocker.patch("web3._utils.request.get_response_from_get_request", return_value=mocked_response)
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    # Test with default parameters
+    response = await async_beacon.get_validator_balances()
+    assert response == response_json
+    mocked_fn.assert_called_with(
+        "http://127.0.0.1:8545/eth/v1/beacon/states/head/validator_balances", timeout=10.0, params={"id": None}
+    )
+
+    # Test with custom state_id and indexes
+    indexes = ["0", "1"]
+    state_id = "finalized"
+    response = await async_beacon.get_validator_balances(state_id=state_id, indexes=indexes)
+    print("RESP", response)
+    assert response == response_json
+    mocked_fn.assert_called_with(
+        f"http://127.0.0.1:8545/eth/v1/beacon/states/{state_id}/validator_balances", timeout=10.0, params={"id": ["0", "1"]}
+    )

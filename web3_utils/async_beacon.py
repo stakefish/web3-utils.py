@@ -2,9 +2,11 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Callable
 
+from eth_typing import URI
 from requests import HTTPError, ConnectionError, Session
 from tenacity import retry, retry_if_exception, wait_fixed, before_sleep_log, retry_any, retry_if_exception_type, stop_never
 from web3.beacon import Beacon
+from web3._utils.request import json_make_get_request, cache_and_return_session
 
 
 def with_retry(f):
@@ -34,10 +36,6 @@ class AsyncBeacon(Beacon):
         self.retry_stop = retry_stop
         self.logger = logger
         self.cache = {}
-
-    def update_base_url(self, base_url: str):
-        self.base_url = base_url
-        self.session = Session()
 
     async def get_syncing(self):
         return await self._run_as_async(super().get_syncing)
@@ -89,14 +87,13 @@ class AsyncBeacon(Beacon):
         return self._make_get_request_with_params(endpoint, params)
 
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
-        url = self.base_url + endpoint
-        response = self.session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        uri = URI(self.base_url + endpoint)
+        return json_make_get_request(uri, timeout=self.request_timeout, params=params)
 
     def _make_post_request(self, endpoint: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
-        url = self.base_url + endpoint
-        response = self.session.post(url, json=json_data)
+        uri = self.base_url + endpoint
+        session = cache_and_return_session(uri)
+        response = session.post(uri, json=json_data)
         response.raise_for_status()
         return response.json()
 
