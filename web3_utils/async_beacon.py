@@ -59,6 +59,15 @@ class AsyncBeacon(Beacon):
     async def get_validator_balances(self, state_id: str = "head", indexes: List[str] = None) -> Dict[str, Any]:
         return await self._run_as_async(self._get_validator_balances, state_id, indexes)
 
+    async def get_pending_consolidations(self, state_id: str = "head"):
+        return await self._run_as_async(self._get_pending_consolidations, state_id)
+
+    async def get_pending_deposits(self, state_id: str = "head"):
+        return await self._run_as_async(self._get_pending_deposits, state_id)
+
+    async def get_pending_partial_withdrawals(self, state_id: str = "head"):
+        return await self._run_as_async(self._get_pending_partial_withdrawals, state_id)
+
     def _get_validator(self, pubkey: str, state_id: str = "head"):
         try:
             return super().get_validator(pubkey, state_id)
@@ -85,6 +94,18 @@ class AsyncBeacon(Beacon):
         params = {"id": indexes}
 
         return self._make_get_request_with_params(endpoint, params)
+
+    def _get_pending_consolidations(self, state_id: str = "head"):
+        endpoint = f"/eth/v1/beacon/states/{state_id}/pending_consolidations"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_pending_deposits(self, state_id: str = "head"):
+        endpoint = f"/eth/v1/beacon/states/{state_id}/pending_deposits"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_pending_partial_withdrawals(self, state_id: str = "head"):
+        endpoint = f"/eth/v1/beacon/states/{state_id}/pending_partial_withdrawals"
+        return self._make_get_request_with_params(endpoint, params=None)
 
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
         uri = URI(self.base_url + endpoint)

@@ -129,3 +129,35 @@ async def test_get_validator_balances(mocker: MockerFixture):
     mocked_fn.assert_called_with(
         f"http://127.0.0.1:8545/eth/v1/beacon/states/{state_id}/validator_balances", timeout=10.0, params={"id": ["0", "1"]}
     )
+
+
+@pytest.mark.asyncio()
+async def test_get_pending_consolidations(mocker: MockerFixture):
+    response_json = {"data": ["consolidation1", "consolidation2"]}
+    mocked_response = mocker.patch("web3_utils.async_beacon.AsyncBeacon._get_pending_consolidations", return_value=response_json)
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+    response = await async_beacon.get_pending_consolidations()
+    assert response == response_json
+    mocked_response.assert_called_once_with("head")
+
+
+@pytest.mark.asyncio()
+async def test_get_pending_deposits(mocker: MockerFixture):
+    response_json = {"data": ["deposit1", "deposit2"]}
+    mocked_response = mocker.patch("web3_utils.async_beacon.AsyncBeacon._get_pending_deposits", return_value=response_json)
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+    response = await async_beacon.get_pending_deposits()
+    assert response == response_json
+    mocked_response.assert_called_once_with("head")
+
+
+@pytest.mark.asyncio()
+async def test_get_pending_partial_withdrawals(mocker: MockerFixture):
+    response_json = {"data": ["withdrawal1", "withdrawal2"]}
+    mocked_response = mocker.patch(
+        "web3_utils.async_beacon.AsyncBeacon._get_pending_partial_withdrawals", return_value=response_json
+    )
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+    response = await async_beacon.get_pending_partial_withdrawals()
+    assert response == response_json
+    mocked_response.assert_called_once_with("head")
