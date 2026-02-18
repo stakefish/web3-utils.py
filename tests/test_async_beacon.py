@@ -1,3 +1,4 @@
+import contextvars
 import logging
 
 import pytest
@@ -161,3 +162,77 @@ async def test_get_pending_partial_withdrawals(mocker: MockerFixture):
     response = await async_beacon.get_pending_partial_withdrawals()
     assert response == response_json
     mocked_response.assert_called_once_with("head")
+
+
+test_context_var = contextvars.ContextVar("test_context_var", default=None)
+
+
+@pytest.mark.asyncio()
+async def test_run_as_async_propagates_context_vars():
+    """Context variables set in the async caller should be visible inside the executor thread."""
+    test_context_var.set("hello_from_async")
+
+    def sync_fn_reads_context():
+        return test_context_var.get()
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+    result = await async_beacon._run_as_async(sync_fn_reads_context)
+
+    assert result == "hello_from_async"
+
+
+@pytest.mark.asyncio()
+async def test_run_as_async_context_is_a_copy():
+    """Mutations to context variables inside the executor should not leak back to the caller."""
+    test_context_var.set("original")
+
+    def sync_fn_mutates_context():
+        test_context_var.set("mutated_in_thread")
+        return test_context_var.get()
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+    result = await async_beacon._run_as_async(sync_fn_mutates_context)
+
+    # The executor thread saw the mutated value
+    assert result == "mutated_in_thread"
+    # But the caller's context is unchanged because copy_context() was used
+    assert test_context_var.get() == "original"
+
+
+@pytest.mark.asyncio()
+async def test_run_as_async_passes_func_and_args_through_ctx_run():
+    """func and *args are correctly forwarded through ctx.run(func, *args)."""
+
+    def sync_fn_with_args(a, b, c):
+        return (a, b, c)
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    result = await async_beacon._run_as_async(sync_fn_with_args, "x", 42, [1, 2])
+    assert result == ("x", 42, [1, 2])
+
+
+@pytest.mark.asyncio()
+async def test_run_as_async_passes_single_arg():
+    """A single positional arg is forwarded correctly (not accidentally unpacked)."""
+
+    def sync_fn_single_arg(value):
+        return value
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    result = await async_beacon._run_as_async(sync_fn_single_arg, "only_one")
+    assert result == "only_one"
+
+
+@pytest.mark.asyncio()
+async def test_run_as_async_passes_no_args():
+    """Calling with zero extra args works (func receives nothing beyond what ctx.run provides)."""
+
+    def sync_fn_no_args():
+        return "no_args_ok"
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    result = await async_beacon._run_as_async(sync_fn_no_args)
+    assert result == "no_args_ok"

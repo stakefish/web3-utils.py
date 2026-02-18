@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 import logging
 from typing import Any, Dict, List, Callable
 
@@ -121,4 +122,5 @@ class AsyncBeacon(Beacon):
     @with_retry
     async def _run_as_async(self, func, *args):
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, func, *args)
+        ctx = contextvars.copy_context()
+        return await loop.run_in_executor(None, ctx.run, func, *args)
