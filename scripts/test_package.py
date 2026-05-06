@@ -8,13 +8,9 @@ from tempfile import (
 from typing import (
     Tuple,
 )
-import venv
-
-
 def create_venv(parent_path: Path) -> Path:
     venv_path = parent_path / "package-smoke-test"
-    venv.create(venv_path, with_pip=True)
-    subprocess.run([venv_path / "bin" / "pip", "install", "-U", "pip", "setuptools"], check=True)
+    subprocess.run(["uv", "venv", str(venv_path)], check=True)
     return venv_path
 
 
@@ -34,7 +30,14 @@ def install_wheel(venv_path: Path, wheel_path: Path, extras: Tuple[str, ...] = (
         extra_suffix = ""
 
     subprocess.run(
-        [venv_path / "bin" / "pip", "install", f"{wheel_path}{extra_suffix}"],
+        [
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            str(venv_path / "bin" / "python"),
+            f"{wheel_path}{extra_suffix}",
+        ],
         check=True,
     )
 

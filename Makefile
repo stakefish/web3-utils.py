@@ -26,12 +26,11 @@ format:
 	black .
 
 install: clean
-	pip install --editable .
-	pip install -r requirements-dev.txt
-	npm ci
+	uv pip install --editable .
+	uv pip install -r requirements.txt -r requirements-dev.txt
 
 test:
-	brownie test --network hardhat -s
+	pytest tests/ -s
 
 release: clean
 	# require that you be on a branch that's linked to origin/main

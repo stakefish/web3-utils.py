@@ -3,16 +3,12 @@ import logging
 
 import pytest
 from pytest_mock import MockerFixture
-from requests import HTTPError, ConnectionError, Response
+from requests import ConnectionError, HTTPError, Response
 
 from web3_utils.async_beacon import AsyncBeacon
 
 VALIDATOR_PUB_KEY_1 = "1" * 96
 
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 def trigger_fake_error(error_to_raise, stop_after_attempt=1):
@@ -110,7 +106,9 @@ async def test_get_validator_balances(mocker: MockerFixture):
     mocked_response.json = lambda: response_json
     mocked_response.status_code = 200
 
-    mocked_fn = mocker.patch("web3._utils.request.get_response_from_get_request", return_value=mocked_response)
+    mocked_fn = mocker.patch(
+        "web3._utils.http_session_manager.HTTPSessionManager.get_response_from_get_request", return_value=mocked_response
+    )
 
     async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
 

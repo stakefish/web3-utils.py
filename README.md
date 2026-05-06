@@ -22,7 +22,7 @@ make format
 Before releasing a new version, build and test the package that will be released. There’s a script to build and install the wheel locally, then generate a temporary virtualenv for smoke testing:
 
 ```bash
-pip install --upgrade build
+uv pip install --upgrade build
 ```
 
 ```bash

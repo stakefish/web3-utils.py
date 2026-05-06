@@ -15,10 +15,6 @@ from web3.types import RPCError
 from web3_utils.retryable_eth_module import get_retryable_eth_module
 
 
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
-
 
 class StopOnShutdownFake:
     def __call__(self, retry_state: "RetryCallState") -> bool:
@@ -77,7 +73,7 @@ def test_http_504_retry(mocker):
 def test_block_not_found_retry(mocker):
     mocked_fn: MagicMock = mocker.patch(
         "web3.module.retrieve_blocking_method_call_fn",
-        return_value=trigger_fake_error(error_to_raise=BlockNotFound()),
+        return_value=trigger_fake_error(error_to_raise=BlockNotFound("block not found")),
     )
 
     web3 = retryable_web3()
@@ -88,7 +84,7 @@ def test_block_not_found_retry(mocker):
 def test_transaction_not_found_retry(mocker):
     mocked_fn: MagicMock = mocker.patch(
         "web3.module.retrieve_blocking_method_call_fn",
-        return_value=trigger_fake_error(error_to_raise=TransactionNotFound()),
+        return_value=trigger_fake_error(error_to_raise=TransactionNotFound("tx not found")),
     )
 
     web3 = retryable_web3()
@@ -133,7 +129,7 @@ def test_stop_retry_on_shutdown(mocker: MockerFixture, event_loop):
     mocked_fn: MagicMock = mocker.patch(
         "web3.module.retrieve_blocking_method_call_fn",
         # providing higher number of attempts on purpose
-        return_value=trigger_fake_error(error_to_raise=BlockNotFound(), stop_after_attempt=5),
+        return_value=trigger_fake_error(error_to_raise=BlockNotFound("block not found"), stop_after_attempt=5),
     )
 
     web3 = retryable_web3()
