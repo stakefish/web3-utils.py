@@ -76,6 +76,9 @@ class AsyncBeacon(Beacon):
     async def get_pending_partial_withdrawals(self, state_id: str = "head"):
         return await self._run_as_async(self._get_pending_partial_withdrawals, state_id)
 
+    async def get_debug_beacon_heads(self):
+        return await self._run_as_async(self._get_debug_beacon_heads)
+
     def _get_validator(self, pubkey: str, state_id: str = "head"):
         try:
             return super().get_validator(pubkey, state_id)
@@ -113,6 +116,10 @@ class AsyncBeacon(Beacon):
 
     def _get_pending_partial_withdrawals(self, state_id: str = "head"):
         endpoint = f"/eth/v1/beacon/states/{state_id}/pending_partial_withdrawals"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_debug_beacon_heads(self):
+        endpoint = "/eth/v2/debug/beacon/heads"
         return self._make_get_request_with_params(endpoint, params=None)
 
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
