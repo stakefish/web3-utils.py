@@ -79,6 +79,9 @@ class AsyncBeacon(Beacon):
     async def get_debug_beacon_heads(self):
         return await self._run_as_async(self._get_debug_beacon_heads)
 
+    async def get_attestations_rewards(self, epoch: int, validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_attestations_rewards, epoch, validator_indices)
+
     def _get_validator(self, pubkey: str, state_id: str = "head"):
         try:
             return super().get_validator(pubkey, state_id)
@@ -121,6 +124,10 @@ class AsyncBeacon(Beacon):
     def _get_debug_beacon_heads(self):
         endpoint = "/eth/v2/debug/beacon/heads"
         return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_attestations_rewards(self, epoch: int, validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/rewards/attestations/{epoch}"
+        return self._make_post_request(endpoint, validator_indices)
 
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
         uri = URI(self.base_url + endpoint)

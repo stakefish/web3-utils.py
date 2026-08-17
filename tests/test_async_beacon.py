@@ -234,3 +234,31 @@ async def test_run_as_async_passes_no_args():
 
     result = await async_beacon._run_as_async(sync_fn_no_args)
     assert result == "no_args_ok"
+
+
+@pytest.mark.asyncio()
+async def test_get_attestations_rewards(mocker: MockerFixture):
+    """The body is a bare JSON array, not {"indices": [...]}, and the epoch belongs in the path."""
+    response_json = {
+        "data": {
+            "ideal_rewards": [{"effective_balance": "32000000000", "head": "1", "target": "2", "source": "3"}],
+            "total_rewards": [{"validator_index": "7", "head": "1", "target": "2", "source": "3", "inactivity": "0"}],
+        }
+    }
+    mocked_response = Response()
+    mocked_response.json = lambda: response_json
+    mocked_response.status_code = 200
+    mocked_session = mocker.MagicMock()
+    mocked_session.post.return_value = mocked_response
+    mocker.patch(
+        "web3._utils.http_session_manager.HTTPSessionManager.cache_and_return_session", return_value=mocked_session
+    )
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    response = await async_beacon.get_attestations_rewards(1234, ["7", "8"])
+
+    assert response == response_json
+    mocked_session.post.assert_called_once_with(
+        "http://127.0.0.1:8545/eth/v1/beacon/rewards/attestations/1234", json=["7", "8"]
+    )
