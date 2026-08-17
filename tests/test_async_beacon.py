@@ -236,29 +236,59 @@ async def test_run_as_async_passes_no_args():
     assert result == "no_args_ok"
 
 
+
+POST_ENDPOINTS = [
+    ("get_attestations_rewards", 1234, "/eth/v1/beacon/rewards/attestations/1234"),
+    ("get_sync_committee_rewards", "0xabc", "/eth/v1/beacon/rewards/sync_committee/0xabc"),
+    ("get_validator_liveness", 1234, "/eth/v1/validator/liveness/1234"),
+    ("get_attester_duties", 1234, "/eth/v1/validator/duties/attester/1234"),
+    ("get_sync_committee_duties", 1234, "/eth/v1/validator/duties/sync/1234"),
+]
+
+GET_ENDPOINTS = [
+    ("get_rewards", ("head",), "/eth/v1/beacon/rewards/blocks/head"),
+    ("get_block_proposer_duties", (1234,), "/eth/v1/validator/duties/proposer/1234"),
+    ("get_block_header", (99,), "/eth/v1/beacon/headers/99"),
+    ("get_block_root", (99,), "/eth/v1/beacon/blocks/99/root"),
+    ("get_spec", (), "/eth/v1/config/spec"),
+]
+
+
 @pytest.mark.asyncio()
-async def test_get_attestations_rewards(mocker: MockerFixture):
-    """The body is a bare JSON array, not {"indices": [...]}, and the epoch belongs in the path."""
-    response_json = {
-        "data": {
-            "ideal_rewards": [{"effective_balance": "32000000000", "head": "1", "target": "2", "source": "3"}],
-            "total_rewards": [{"validator_index": "7", "head": "1", "target": "2", "source": "3", "inactivity": "0"}],
-        }
-    }
+@pytest.mark.parametrize("method, arg, path", POST_ENDPOINTS)
+async def test_duty_and_reward_post_endpoints(mocker: MockerFixture, method: str, arg, path: str):
+    """The body must be a bare JSON array of indices: wrapping it in an object silently means
+    "every validator" on the node side rather than erroring."""
+    response_json = {"data": []}
     mocked_response = Response()
     mocked_response.json = lambda: response_json
     mocked_response.status_code = 200
     mocked_session = mocker.MagicMock()
     mocked_session.post.return_value = mocked_response
-    mocker.patch(
-        "web3._utils.http_session_manager.HTTPSessionManager.cache_and_return_session", return_value=mocked_session
+    mocker.patch("web3._utils.http_session_manager.HTTPSessionManager.cache_and_return_session", return_value=mocked_session)
+
+    async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
+
+    response = await getattr(async_beacon, method)(arg, ["7", "8"])
+
+    assert response == response_json
+    mocked_session.post.assert_called_once_with(f"http://127.0.0.1:8545{path}", json=["7", "8"])
+
+
+@pytest.mark.asyncio()
+@pytest.mark.parametrize("method, args, path", GET_ENDPOINTS)
+async def test_duty_and_reward_get_endpoints(mocker: MockerFixture, method: str, args, path: str):
+    response_json = {"data": []}
+    mocked_response = Response()
+    mocked_response.json = lambda: response_json
+    mocked_response.status_code = 200
+    mocked_fn = mocker.patch(
+        "web3._utils.http_session_manager.HTTPSessionManager.get_response_from_get_request", return_value=mocked_response
     )
 
     async_beacon = AsyncBeacon("http://127.0.0.1:8545", logger=logging.getLogger(), retry_stop=None)
 
-    response = await async_beacon.get_attestations_rewards(1234, ["7", "8"])
+    response = await getattr(async_beacon, method)(*args)
 
     assert response == response_json
-    mocked_session.post.assert_called_once_with(
-        "http://127.0.0.1:8545/eth/v1/beacon/rewards/attestations/1234", json=["7", "8"]
-    )
+    mocked_fn.assert_called_with(f"http://127.0.0.1:8545{path}", timeout=10.0, params=None)
