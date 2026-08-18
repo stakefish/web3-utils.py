@@ -14,8 +14,13 @@ jobs:
         with:
           python-version-file: .python-version
       - name: Install dependencies
+        # The Makefile installs with uv, which the runner does not ship. UV_SYSTEM_PYTHON targets the
+        # interpreter setup-python provides, since uv otherwise refuses to install outside a virtualenv.
+        # Set here rather than as `--system` in the Makefile, which would make a local `make install`
+        # bypass the developer's own virtualenv.
+        env:
+          UV_SYSTEM_PYTHON: 1
         run: |
-          # The Makefile's install target shells out to uv, which the runner does not ship.
           pip install uv
           make install
       - name: Check style format
