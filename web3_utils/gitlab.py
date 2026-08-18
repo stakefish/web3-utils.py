@@ -1,9 +1,10 @@
 import base64
 import re
 import shutil
-from os import path, makedirs, getcwd
-from gitlab import Gitlab
+from os import getcwd, makedirs, path
 from typing import Optional
+
+from gitlab import Gitlab
 
 
 class GitLab:

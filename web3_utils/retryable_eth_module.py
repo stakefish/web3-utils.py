@@ -1,17 +1,26 @@
 from __future__ import annotations
+
 import asyncio
-from http import HTTPStatus
 import logging
 import time
+import typing
+from http import HTTPStatus
 from typing import Type
 
-import typing
 from aiohttp import ClientConnectorError
-from requests import HTTPError, ConnectionError
-from tenacity import retry, retry_if_exception_type, wait_fixed, RetryCallState, retry_any, retry_if_exception, stop_never
+from requests import ConnectionError, HTTPError
+from tenacity import (
+    RetryCallState,
+    retry,
+    retry_any,
+    retry_if_exception,
+    retry_if_exception_type,
+    stop_never,
+    wait_fixed,
+)
 from tenacity._utils import get_callback_name
-from web3.eth import Eth, AsyncEth
-from web3.exceptions import TransactionNotFound, BlockNotFound
+from web3.eth import AsyncEth, Eth
+from web3.exceptions import BlockNotFound, TransactionNotFound
 
 
 def before_sleep_log(

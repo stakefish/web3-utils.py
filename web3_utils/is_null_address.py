@@ -1,4 +1,4 @@
-from eth_typing import HexStr, HexAddress
+from eth_typing import HexAddress, HexStr
 from web3.constants import ADDRESS_ZERO
 
 
