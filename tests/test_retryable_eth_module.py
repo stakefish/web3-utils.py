@@ -5,11 +5,11 @@ from unittest.mock import MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
-from requests import HTTPError, ConnectionError
+from requests import ConnectionError, HTTPError
 from web3 import HTTPProvider
 from web3.eth import Eth
 from web3.exceptions import BlockNotFound, TransactionNotFound
-from web3.main import get_default_modules, Web3
+from web3.main import Web3, get_default_modules
 from web3.types import RPCError
 
 from web3_utils.retryable_eth_module import get_retryable_eth_module
@@ -124,7 +124,7 @@ def test_other_error_do_not_retry(mocker: MockerFixture):
     mocked_fn.assert_called()
 
 
-def test_stop_retry_on_shutdown(mocker: MockerFixture, event_loop):
+def test_stop_retry_on_shutdown(mocker: MockerFixture):
     mocked_fn: MagicMock = mocker.patch(
         "web3.module.retrieve_blocking_method_call_fn",
         # providing higher number of attempts on purpose
