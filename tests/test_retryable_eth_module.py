@@ -15,7 +15,6 @@ from web3.types import RPCError
 from web3_utils.retryable_eth_module import get_retryable_eth_module
 
 
-
 class StopOnShutdownFake:
     def __call__(self, retry_state: "RetryCallState") -> bool:
         return retry_state.attempt_number > 1

@@ -10,7 +10,6 @@ from web3_utils.async_beacon import AsyncBeacon
 VALIDATOR_PUB_KEY_1 = "1" * 96
 
 
-
 def trigger_fake_error(error_to_raise, stop_after_attempt=1):
     state = {"counter": 0}
 
@@ -234,7 +233,6 @@ async def test_run_as_async_passes_no_args():
 
     result = await async_beacon._run_as_async(sync_fn_no_args)
     assert result == "no_args_ok"
-
 
 
 POST_ENDPOINTS = [

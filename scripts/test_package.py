@@ -8,6 +8,8 @@ from tempfile import (
 from typing import (
     Tuple,
 )
+
+
 def create_venv(parent_path: Path) -> Path:
     venv_path = parent_path / "package-smoke-test"
     subprocess.run(["uv", "venv", str(venv_path)], check=True)
