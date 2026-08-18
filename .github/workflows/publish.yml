@@ -1,0 +1,85 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        # Same reasoning as tests.yml: the Makefile installs with uv, which the runner does not ship,
+        # and uv refuses to install outside a virtualenv without UV_SYSTEM_PYTHON.
+        env:
+          UV_SYSTEM_PYTHON: 1
+        run: |
+          pip install uv
+          make install
+      - name: Check style format
+        run: make lint
+      - name: Run tests
+        run: make test
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Refuse to publish a tag that disagrees with the packaged version
+        # Without this, tagging v0.11.3 on a tree whose setup.cfg still says 0.12.0 publishes 0.12.0
+        # under the wrong tag, and the mismatch is invisible afterwards.
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          cfg_version="$(sed -n 's/^version *= *//p' setup.cfg | head -1 | tr -d '[:space:]')"
+          echo "tag=$tag_version setup.cfg=$cfg_version"
+          if [ "$tag_version" != "$cfg_version" ]; then
+            echo "::error::tag $tag_version does not match setup.cfg version $cfg_version"
+            exit 1
+          fi
+      - name: Build sdist and wheel
+        run: |
+          pip install build
+          python -m build
+      - name: Check the artifacts are well formed
+        run: |
+          pip install twine
+          twine check dist/*
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Gate the one irreversible step: a PyPI version can never be reused, so this environment is where
+    # required reviewers or a wait timer belong.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/stakefish-web3-utils/
+    permissions:
+      # Trusted Publishing mints a short-lived OIDC token instead of holding a long-lived API token.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
