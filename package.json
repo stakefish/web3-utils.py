@@ -1,5 +1,8 @@
 {
+  "engines": {
+    "node": ">=24"
+  },
   "devDependencies": {
-    "hardhat": "^2.12.5"
+    "hardhat": "^3.13.0"
   }
 }
