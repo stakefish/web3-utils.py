@@ -270,7 +270,7 @@ async def test_duty_and_reward_post_endpoints(mocker: MockerFixture, method: str
     response = await getattr(async_beacon, method)(arg, ["7", "8"])
 
     assert response == response_json
-    mocked_session.post.assert_called_once_with(f"http://127.0.0.1:8545{path}", json=["7", "8"])
+    mocked_session.post.assert_called_once_with(f"http://127.0.0.1:8545{path}", json=["7", "8"], timeout=10.0)
 
 
 @pytest.mark.asyncio()

@@ -199,7 +199,7 @@ class AsyncBeacon(Beacon):
     def _make_post_request(self, endpoint: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
         uri = self.base_url + endpoint
         session = self._request_session_manager.cache_and_return_session(uri)
-        response = session.post(uri, json=json_data)
+        response = session.post(uri, json=json_data, timeout=self.request_timeout)
         response.raise_for_status()
         return response.json()
 
