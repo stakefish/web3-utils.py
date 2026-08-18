@@ -1,0 +1,99 @@
+version: 2
+updates:
+  # --- JavaScript / TypeScript dependencies (package-lock.json at repo root) ---
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    cooldown:
+      default-days: 14
+    groups:
+      npm-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+    # Majors fall outside the group -> each opens its own PR.
+    # Security updates are never grouped -> each advisory opens its own PR
+    # with severity/CVE info auto-included by Dependabot.
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    cooldown:
+      default-days: 14
+    groups:
+      gha-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  # --- Docker base image referenced by ./Dockerfile ---
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    cooldown:
+      default-days: 14
+    ignore:
+      # Pin the node base image to the 24.x line. Patch/minor bumps within 24
+      # are still allowed (security), but never jump to 26+ (Node 24 is the
+      # current LTS we target). Re-evaluate manually before bumping the major.
+      - dependency-name: "node"
+        update-types:
+          - "version-update:semver-major"
+
+  # --- Python dependencies via uv (pyproject.toml + uv.lock at repo root) ---
+  # 14-day cooldown mirrors tool.uv.exclude-newer in pyproject.toml so
+  # Dependabot won't propose just-released packages (defense against
+  # compromised releases).
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    cooldown:
+      default-days: 14
+    groups:
+      uv-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # eth-brownie is intentionally pinned to 1.22.0.dev4 with workarounds
+      # in pyproject.toml (mypyc wheel bug -> no-binary-package, transitive
+      # pin overrides via override-dependencies). Re-evaluate manually before
+      # bumping; see [tool.uv] in pyproject.toml.
+      - dependency-name: "eth-brownie"

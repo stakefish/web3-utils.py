@@ -8,16 +8,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
       - name: Install dependencies
-        # The Makefile installs with uv, which the runner does not ship. UV_SYSTEM_PYTHON targets the
-        # interpreter setup-python provides, since uv otherwise refuses to install outside a virtualenv.
-        # Set here rather than as `--system` in the Makefile, which would make a local `make install`
-        # bypass the developer's own virtualenv.
         env:
           UV_SYSTEM_PYTHON: 1
         run: |
@@ -26,9 +22,9 @@ jobs:
       - name: Check style format
         run: make lint
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
-          node-version: '16.14.2'
+          node-version: '22.x'
           cache: 'npm'
       - name: Install Node.js dependencies
         run: |
