@@ -197,9 +197,6 @@ class AsyncBeacon(Beacon):
         return self._request_session_manager.json_make_get_request(uri, timeout=self.request_timeout, params=params)
 
     def _make_post_request(self, endpoint: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
-        # Timeout on the request itself, matching the GET path. These run in an executor, where
-        # asyncio.wait_for cancels only the waiter: without this the thread stays blocked and repeated
-        # stalls exhaust the executor.
         uri = self.base_url + endpoint
         session = self._request_session_manager.cache_and_return_session(uri)
         response = session.post(uri, json=json_data, timeout=self.request_timeout)
