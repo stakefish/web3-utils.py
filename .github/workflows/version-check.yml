@@ -1,0 +1,25 @@
+name: Version check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  version-bumped:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # An escape hatch for the cases a rule cannot judge: batching several merges into one release, or
+    # reverting. Applying it is visible in the PR and in review, unlike a bypassed status check.
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-version-check')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # The check compares against the base branch, so the merge-base has to exist locally.
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Require a version bump for packaged changes
+        run: python scripts/check_version_bump.py "origin/${{ github.base_ref }}"

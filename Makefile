@@ -21,6 +21,7 @@ clean-pyc:
 
 lint:
 	black --check .
+	isort --check --diff .
 
 format:
 	black .

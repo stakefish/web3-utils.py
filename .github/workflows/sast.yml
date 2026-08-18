@@ -8,12 +8,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
-      - run: |
+      - name: Install dependencies
+        env:
+          UV_SYSTEM_PYTHON: 1
+        run: |
+          pip install uv
           make install
       - uses: AppThreat/sast-scan-action@master
         with:

@@ -1,7 +1,9 @@
 import os
 import shutil
 import tempfile
+
 import pytest
+
 from web3_utils.load_public_keys_from_files import load_public_keys_from_files
 
 file_content = [

@@ -1,4 +1,4 @@
-from os import path, listdir, getcwd
+from os import getcwd, listdir, path
 from typing import TypedDict
 
 

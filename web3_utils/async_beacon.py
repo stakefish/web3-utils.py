@@ -1,7 +1,7 @@
 import asyncio
 import contextvars
 import logging
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 
 from eth_typing import URI
 from requests import ConnectionError, HTTPError
@@ -79,6 +79,36 @@ class AsyncBeacon(Beacon):
     async def get_debug_beacon_heads(self):
         return await self._run_as_async(self._get_debug_beacon_heads)
 
+    async def get_attestations_rewards(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_attestations_rewards, epoch, validator_indices)
+
+    async def get_sync_committee_rewards(self, block_id: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_sync_committee_rewards, block_id, validator_indices)
+
+    async def get_validator_liveness(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_validator_liveness, epoch, validator_indices)
+
+    async def get_attester_duties(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_attester_duties, epoch, validator_indices)
+
+    async def get_sync_committee_duties(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_sync_committee_duties, epoch, validator_indices)
+
+    async def get_rewards(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_rewards, block_id)
+
+    async def get_block_proposer_duties(self, epoch: Union[int, str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_block_proposer_duties, epoch)
+
+    async def get_block_header(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_block_header, block_id)
+
+    async def get_block_root(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_block_root, block_id)
+
+    async def get_spec(self) -> Dict[str, Any]:
+        return await self._run_as_async(self._get_spec)
+
     def _get_validator(self, pubkey: str, state_id: str = "head"):
         try:
             return super().get_validator(pubkey, state_id)
@@ -120,6 +150,46 @@ class AsyncBeacon(Beacon):
 
     def _get_debug_beacon_heads(self):
         endpoint = "/eth/v2/debug/beacon/heads"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_attestations_rewards(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/rewards/attestations/{epoch}"
+        return self._make_post_request(endpoint, validator_indices)
+
+    def _get_sync_committee_rewards(self, block_id: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/rewards/sync_committee/{block_id}"
+        return self._make_post_request(endpoint, validator_indices)
+
+    def _get_validator_liveness(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/validator/liveness/{epoch}"
+        return self._make_post_request(endpoint, validator_indices)
+
+    def _get_attester_duties(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/validator/duties/attester/{epoch}"
+        return self._make_post_request(endpoint, validator_indices)
+
+    def _get_sync_committee_duties(self, epoch: Union[int, str], validator_indices: List[str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/validator/duties/sync/{epoch}"
+        return self._make_post_request(endpoint, validator_indices)
+
+    def _get_rewards(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/rewards/blocks/{block_id}"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_block_proposer_duties(self, epoch: Union[int, str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/validator/duties/proposer/{epoch}"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_block_header(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/headers/{block_id}"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_block_root(self, block_id: Union[int, str]) -> Dict[str, Any]:
+        endpoint = f"/eth/v1/beacon/blocks/{block_id}/root"
+        return self._make_get_request_with_params(endpoint, params=None)
+
+    def _get_spec(self) -> Dict[str, Any]:
+        endpoint = "/eth/v1/config/spec"
         return self._make_get_request_with_params(endpoint, params=None)
 
     def _make_get_request_with_params(self, endpoint: str, params: Any) -> Dict[str, Any]:
