@@ -13,7 +13,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version-file: .python-version
-      - run: |
+      - name: Install dependencies
+        run: |
+          # The Makefile's install target shells out to uv, which the runner does not ship.
+          pip install uv
           make install
       - name: Check style format
         run: make lint
