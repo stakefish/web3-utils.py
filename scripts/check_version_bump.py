@@ -11,6 +11,8 @@ import configparser
 import subprocess
 import sys
 
+from packaging.version import InvalidVersion, Version
+
 # Only these decide what a consumer installs. A PR touching CI, tests or docs releases nothing, so
 # demanding a bump for it would train people to bump meaninglessly.
 PACKAGED_PATHS = ("web3_utils/", "setup.cfg", "pyproject.toml", "requirements.txt")
@@ -25,12 +27,6 @@ def _version_from(text: str, section: str, option: str) -> str:
     parser = configparser.ConfigParser()
     parser.read_string(text)
     return parser.get(section, option).strip()
-
-
-def _as_tuple(version: str) -> tuple:
-    # Deliberately not packaging.version: this repo's bumpversion serialize can emit `0.12.0b.1`, which
-    # is not PEP 440 and would raise rather than compare. Numeric parts are enough to order releases.
-    return tuple(int(part) for part in version.split(".") if part.isdigit())
 
 
 def main(base_ref: str) -> int:
@@ -55,7 +51,14 @@ def main(base_ref: str) -> int:
     base_version = _version_from(_run("git", "show", f"{base_ref}:setup.cfg"), "metadata", "version")
     print(f"base={base_version} head={head_version} packaged changes={relevant}")
 
-    if _as_tuple(head_version) <= _as_tuple(base_version):
+    try:
+        head_release = Version(head_version)
+        base_release = Version(base_version)
+    except InvalidVersion as exc:
+        print(f"::error::Invalid release version: {exc}")
+        return 1
+
+    if head_release <= base_release:
         print(f"::error::{', '.join(relevant)} changed but the version is still {head_version}.")
         print(f"Bump it above {base_version} with `bumpversion patch|minor|major`.")
         return 1
