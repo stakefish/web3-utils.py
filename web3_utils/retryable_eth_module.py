@@ -20,7 +20,7 @@ from tenacity import (
 )
 from tenacity._utils import get_callback_name
 from web3.eth import AsyncEth, Eth
-from web3.exceptions import BlockNotFound, TransactionNotFound
+from web3.exceptions import BlockNotFound, TransactionNotFound, Web3RPCError
 
 
 def before_sleep_log(
@@ -70,8 +70,8 @@ def is_retryable_http_error(e) -> bool:
 
 
 def is_timeout_value_error(e) -> bool:
-    """Check if a ValueError is due to an rpc request timeout."""
-    return isinstance(e, ValueError) and "request failed or timed out" in str(e)
+    """Check if a Web3RPCError is due to an rpc request timeout."""
+    return isinstance(e, Web3RPCError) and "request failed or timed out" in str(e)
 
 
 def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.Logger, retry_stop: typing.Callable or None = None):
