@@ -3,6 +3,6 @@
     "node": ">=24"
   },
   "devDependencies": {
-    "hardhat": "^3.18.0"
+    "hardhat": "^3.19.0"
   }
 }
