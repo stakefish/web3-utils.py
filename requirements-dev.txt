@@ -1,4 +1,4 @@
-black==26.10.0
+black==26.10.1
 bumpversion == 0.6.0
 isort == 9.0.2
 pytest-asyncio == 1.4.0
