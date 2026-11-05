@@ -12,15 +12,66 @@ from requests import ConnectionError, HTTPError
 from tenacity import (
     RetryCallState,
     retry,
+    retry_all,
     retry_any,
     retry_if_exception,
     retry_if_exception_type,
-    stop_never,
     wait_fixed,
 )
 from tenacity._utils import get_callback_name
 from web3.eth import AsyncEth, Eth
-from web3.exceptions import BlockNotFound, TransactionNotFound
+from web3.exceptions import (
+    BlockNotFound,
+    RequestTimedOut,
+    TransactionNotFound,
+    Web3RPCError,
+)
+
+# A request that times out is usually too heavy for the node (e.g. eth_getLogs over a huge range), so
+# retrying it forever never succeeds. A consumer-supplied `retry_stop` replaces this cap.
+DEFAULT_RPC_TIMEOUT_MAX_ATTEMPTS = 5
+
+RETRYABLE_RPC_METHODS = frozenset(
+    {
+        # Node and fee queries
+        "eth_accounts",
+        "eth_blobBaseFee",
+        "eth_blockNumber",
+        "eth_chainId",
+        "eth_feeHistory",
+        "eth_gasPrice",
+        "eth_maxPriorityFeePerGas",
+        "eth_syncing",
+        # Block queries
+        "eth_getBlockByHash",
+        "eth_getBlockByNumber",
+        "eth_getBlockReceipts",
+        "eth_getBlockTransactionCountByHash",
+        "eth_getBlockTransactionCountByNumber",
+        # Transaction queries
+        "eth_getTransactionByHash",
+        "eth_getTransactionByBlockHashAndIndex",
+        "eth_getTransactionByBlockNumberAndIndex",
+        "eth_getRawTransactionByHash",
+        "eth_getRawTransactionByBlockHashAndIndex",
+        "eth_getRawTransactionByBlockNumberAndIndex",
+        "eth_getTransactionReceipt",
+        # Account state queries
+        "eth_getBalance",
+        "eth_getCode",
+        "eth_getProof",
+        "eth_getStorageAt",
+        "eth_getTransactionCount",
+        # Log queries
+        "eth_getLogs",
+        "eth_getFilterLogs",
+        # Simulation and estimation
+        "eth_call",
+        "eth_createAccessList",
+        "eth_estimateGas",
+        "eth_simulateV1",
+    }
+)
 
 
 def before_sleep_log(
@@ -70,8 +121,28 @@ def is_retryable_http_error(e) -> bool:
 
 
 def is_timeout_value_error(e) -> bool:
-    """Check if a ValueError is due to an rpc request timeout."""
-    return isinstance(e, ValueError) and "request failed or timed out" in str(e)
+    """Check if a Web3RPCError is due to an rpc request timeout."""
+    if isinstance(e, RequestTimedOut):
+        return True
+    if not isinstance(e, Web3RPCError):
+        return False
+    response = e.rpc_response or {}
+    error = response.get("error", {})
+    return error.get("code") == -32603 and "request failed or timed out" in error.get("message", "")
+
+
+def stop_timeouts_after(max_attempts: int) -> typing.Callable[["RetryCallState"], bool]:
+    """Stop once an rpc timeout has happened on `max_attempts` attempts; other errors are never capped."""
+
+    def stop(retry_state: "RetryCallState") -> bool:
+        return (
+            retry_state.attempt_number >= max_attempts
+            and retry_state.outcome is not None
+            and retry_state.outcome.failed
+            and is_timeout_value_error(retry_state.outcome.exception())
+        )
+
+    return stop
 
 
 def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.Logger, retry_stop: typing.Callable or None = None):
@@ -82,20 +153,37 @@ def get_retryable_eth_module(base: Type[Eth] | Type[AsyncEth], logger: logging.L
             We can also catch HTTPErrors and ConnectionErrors here
             """
             if name == "retrieve_caller_fn":
-                return lambda *args, **kargs: retry(
-                    retry=retry_any(
-                        retry_if_exception_type(
-                            (BlockNotFound, TransactionNotFound, ConnectionError, ClientConnectorError, asyncio.TimeoutError)
+                original_factory = object.__getattribute__(self, name)
+
+                def retrieve_retryable_caller(*args, **kwargs):
+                    method = args[0]
+                    caller = original_factory(*args, **kwargs)
+
+                    return retry(
+                        retry=retry_all(
+                            retry_if_exception(lambda e: method.json_rpc_method in RETRYABLE_RPC_METHODS),
+                            retry_any(
+                                retry_if_exception_type(
+                                    (
+                                        BlockNotFound,
+                                        TransactionNotFound,
+                                        ConnectionError,
+                                        ClientConnectorError,
+                                        asyncio.TimeoutError,
+                                    )
+                                ),
+                                retry_if_exception(is_retryable_http_error),
+                                retry_if_exception(is_timeout_value_error),
+                            ),
                         ),
-                        retry_if_exception(is_retryable_http_error),
-                        retry_if_exception(is_timeout_value_error),
-                    ),
-                    wait=wait_fixed(5),
-                    reraise=True,
-                    before=before,
-                    before_sleep=before_sleep_log(logger=logger, log_level=logging.WARNING),
-                    stop=retry_stop() if retry_stop else stop_never,
-                )(object.__getattribute__(self, name)(*args, *kargs))
+                        wait=wait_fixed(5),
+                        reraise=True,
+                        before=before,
+                        before_sleep=before_sleep_log(logger=logger, log_level=logging.WARNING),
+                        stop=retry_stop() if retry_stop else stop_timeouts_after(DEFAULT_RPC_TIMEOUT_MAX_ATTEMPTS),
+                    )(caller)
+
+                return retrieve_retryable_caller
             else:
                 return object.__getattribute__(self, name)
 
