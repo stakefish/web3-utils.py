@@ -89,7 +89,8 @@ before it reaches PyPI — where a version can never be reused.
 ### Which version part to bump
 
 `{major}.{minor}.{patch}` for stable, `{major}.{minor}.{patch}{stage}.{devnum}` for unstable, where
-stage is `b` or `rc`. From a beta, `bumpversion stage` moves to `rc`; from an `rc`, to stable.
+stage is `b` or `rc`. From a beta, `bumpversion stage` moves to `rc`; from an `rc`, to stable
+(`0.12.5rc.1` becomes `0.12.5`). `bumpversion patch|minor|major` always gives a stable version.
 
 ### Verifying a build locally
 
